@@ -7,7 +7,6 @@ import ProgressBar from '../components/ProgressBar';
 import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 // Districts for each city
@@ -20,6 +19,9 @@ const cityDistricts: Record<string, string[]> = {
   'Olomouc': ['Olomouc-střed', 'Olomouc-západ', 'Olomouc-východ', 'Olomouc-sever', 'Olomouc-jih', 'Neředín']
 };
 
+// Define valid city types to match the PetitionData type
+type City = 'Praha' | 'Brno' | 'Ostrava' | 'Plzeň' | 'Liberec' | 'Olomouc';
+
 const PetitionForm: React.FC = () => {
   const navigate = useNavigate();
   const { submitPetition } = usePetition();
@@ -29,7 +31,7 @@ const PetitionForm: React.FC = () => {
     lastName: '',
     birthDate: '',
     phone: '',
-    city: 'Praha',
+    city: 'Praha' as City, // Type assertion to match the expected type
     district: 'Praha 1'
   });
   
@@ -47,7 +49,7 @@ const PetitionForm: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value as any
     }));
   };
   

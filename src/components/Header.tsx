@@ -15,12 +15,12 @@ const Header: React.FC = () => {
           <span className="text-xl font-bold text-green-700">Zelený Hlas Česko</span>
         </Link>
         <nav>
-          <ul className="flex space-x-6">
+          <ul className="flex space-x-6 items-center">
             <li>
               <Link to="/" className="text-green-700 hover:text-green-500">Domů</Link>
             </li>
             <li>
-              <Link to="/petice" className="green-button">Podepsat Petici</Link>
+              <Link to="/petice" className="green-button px-6 py-3 text-lg">Podepsat Petici</Link>
             </li>
           </ul>
         </nav>
