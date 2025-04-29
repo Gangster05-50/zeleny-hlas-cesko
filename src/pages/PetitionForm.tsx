@@ -8,6 +8,7 @@ import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 // Districts for each city
 const cityDistricts: Record<string, string[]> = {
@@ -18,6 +19,17 @@ const cityDistricts: Record<string, string[]> = {
   'Liberec': ['Liberec I-Staré Město', 'Liberec II-Nové Město', 'Liberec III-Jeřáb', 'Liberec IV-Perštýn', 'Liberec V-Kristiánov'],
   'Olomouc': ['Olomouc-střed', 'Olomouc-západ', 'Olomouc-východ', 'Olomouc-sever', 'Olomouc-jih', 'Neředín']
 };
+
+// Education levels
+const educationLevels = [
+  'Základní',
+  'Střední bez maturity',
+  'Střední s maturitou',
+  'Vyšší odborné',
+  'Bakalářské',
+  'Magisterské',
+  'Doktorské'
+];
 
 // Define valid city types to match the PetitionData type
 type City = 'Praha' | 'Brno' | 'Ostrava' | 'Plzeň' | 'Liberec' | 'Olomouc';
@@ -31,6 +43,10 @@ const PetitionForm: React.FC = () => {
     lastName: '',
     birthDate: '',
     phone: '',
+    email: '',
+    address: '',
+    profession: '',
+    education: 'Střední s maturitou',
     city: 'Praha' as City, // Type assertion to match the expected type
     district: 'Praha 1'
   });
@@ -45,7 +61,7 @@ const PetitionForm: React.FC = () => {
     }));
   }, [formData.city]);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -59,7 +75,7 @@ const PetitionForm: React.FC = () => {
     
     try {
       // Validate form
-      if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.phone) {
+      if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.phone || !formData.email || !formData.address) {
         throw new Error('Vyplňte prosím všechny povinné údaje');
       }
       
@@ -67,6 +83,12 @@ const PetitionForm: React.FC = () => {
       const phoneRegex = /^(\+420)?\s*[0-9]{3}\s*[0-9]{3}\s*[0-9]{3}$/;
       if (!phoneRegex.test(formData.phone)) {
         throw new Error('Zadejte platné telefonní číslo (např. +420 123 456 789)');
+      }
+      
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        throw new Error('Zadejte platnou e-mailovou adresu');
       }
       
       const success = await submitPetition(formData);
@@ -168,6 +190,72 @@ const PetitionForm: React.FC = () => {
                       placeholder="+420 123 456 789"
                       className="w-full"
                     />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    E-mail *
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="vase@email.cz"
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                    Adresa bydliště *
+                  </label>
+                  <Textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ulice, číslo popisné, PSČ, město"
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="profession" className="block text-sm font-medium text-gray-700">
+                      Profese
+                    </label>
+                    <Input
+                      id="profession"
+                      name="profession"
+                      value={formData.profession}
+                      onChange={handleChange}
+                      placeholder="Vaše současná profese"
+                      className="w-full"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="education" className="block text-sm font-medium text-gray-700">
+                      Nejvyšší dosažené vzdělání
+                    </label>
+                    <select
+                      id="education"
+                      name="education"
+                      value={formData.education}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      {educationLevels.map(level => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 

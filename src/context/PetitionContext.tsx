@@ -8,6 +8,10 @@ interface PetitionData {
   lastName: string;
   birthDate: string;
   phone: string;
+  email: string;
+  address: string;
+  profession: string;
+  education: string;
   city: City;
   district: string;
   bank?: string;
@@ -28,6 +32,10 @@ const defaultPetitionData: PetitionData = {
   lastName: '',
   birthDate: '',
   phone: '',
+  email: '',
+  address: '',
+  profession: '',
+  education: 'Střední s maturitou',
   city: 'Praha',
   district: '',
 };

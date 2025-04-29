@@ -22,7 +22,7 @@ const Index: React.FC = () => {
                 Připojte se k nám a podpořte projekt na zlepšení infrastruktury ve vašem městě.
                 Každý podpis se počítá!
               </p>
-              <Link to="/petice" className="inline-block bg-white text-green-700 px-8 py-4 rounded-md font-medium shadow-md hover:shadow-lg transition duration-300 text-xl">
+              <Link to="/petice" className="inline-block bg-white text-green-700 px-10 py-5 rounded-md font-bold shadow-lg hover:shadow-xl transition duration-300 text-2xl hover:scale-105">
                 Podepsat petici
               </Link>
             </div>
@@ -42,7 +42,7 @@ const Index: React.FC = () => {
                 
                 <div className="my-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="green-card p-6 flex flex-col items-center text-center">
-                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg">
+                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg border-4 border-green-200 shadow-md">
                       <img 
                         src="/lovable-uploads/724fbd1b-8ecd-4de7-8516-3c51c51ce79c.png" 
                         alt="Park" 
@@ -56,7 +56,7 @@ const Index: React.FC = () => {
                   </div>
                   
                   <div className="green-card p-6 flex flex-col items-center text-center">
-                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg">
+                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg border-4 border-green-200 shadow-md">
                       <img 
                         src="/lovable-uploads/5e9cd890-c9cb-4870-9b2b-c5f4e01342ad.png" 
                         alt="Cyklostezky" 
@@ -70,7 +70,7 @@ const Index: React.FC = () => {
                   </div>
                   
                   <div className="green-card p-6 flex flex-col items-center text-center">
-                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg">
+                    <div className="w-full h-48 mb-4 overflow-hidden rounded-lg border-4 border-green-200 shadow-md">
                       <img 
                         src="/lovable-uploads/6b6271ea-86bf-40bc-b4af-033e033e794f.png" 
                         alt="Fontány" 
@@ -97,7 +97,7 @@ const Index: React.FC = () => {
                 </p>
                 
                 <div className="mt-10 flex justify-center">
-                  <Link to="/petice" className="green-button text-center px-10 py-5 text-xl">
+                  <Link to="/petice" className="green-button text-center px-12 py-6 text-2xl font-bold hover:scale-105 transition-all duration-300">
                     Podpořit tento projekt
                   </Link>
                 </div>

@@ -7,25 +7,26 @@ import ProgressBar from '../components/ProgressBar';
 import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // List of Czech banks
 const czechBanks = [
-  { id: 'csob', name: 'ČSOB', logo: '🏦' },
-  { id: 'kb', name: 'Komerční banka', logo: '🏦' },
-  { id: 'cs', name: 'Česká spořitelna', logo: '🏦' },
-  { id: 'rb', name: 'Raiffeisenbank', logo: '🏦' },
-  { id: 'moneta', name: 'MONETA Money Bank', logo: '🏦' },
-  { id: 'fio', name: 'Fio banka', logo: '🏦' },
-  { id: 'air', name: 'Air Bank', logo: '🏦' },
-  { id: 'mbank', name: 'mBank', logo: '🏦' },
-  { id: 'unicredit', name: 'UniCredit Bank', logo: '🏦' },
-  { id: 'equa', name: 'Equa bank', logo: '🏦' },
-  { id: 'sberbank', name: 'Sberbank', logo: '🏦' },
-  { id: 'ppf', name: 'PPF banka', logo: '🏦' },
-  { id: 'creditas', name: 'Banka CREDITAS', logo: '🏦' },
-  { id: 'expobank', name: 'Expobank', logo: '🏦' },
-  { id: 'trinity', name: 'Trinity Bank', logo: '🏦' },
-  { id: 'jt', name: 'J&T Banka', logo: '🏦' }
+  { id: 'csob', name: 'ČSOB' },
+  { id: 'kb', name: 'Komerční banka' },
+  { id: 'cs', name: 'Česká spořitelna' },
+  { id: 'rb', name: 'Raiffeisenbank' },
+  { id: 'moneta', name: 'MONETA Money Bank' },
+  { id: 'fio', name: 'Fio banka' },
+  { id: 'air', name: 'Air Bank' },
+  { id: 'mbank', name: 'mBank' },
+  { id: 'unicredit', name: 'UniCredit Bank' },
+  { id: 'equa', name: 'Equa bank' },
+  { id: 'sberbank', name: 'Sberbank' },
+  { id: 'ppf', name: 'PPF banka' },
+  { id: 'creditas', name: 'Banka CREDITAS' },
+  { id: 'expobank', name: 'Expobank' },
+  { id: 'trinity', name: 'Trinity Bank' },
+  { id: 'jt', name: 'J&T Banka' }
 ];
 
 const BankVerification: React.FC = () => {
@@ -33,6 +34,7 @@ const BankVerification: React.FC = () => {
   const { petitionData, completeBankVerification } = usePetition();
   const [selectedBank, setSelectedBank] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
   
   // Check if user has filled the petition form
   React.useEffect(() => {
@@ -56,6 +58,15 @@ const BankVerification: React.FC = () => {
         variant: "destructive",
         title: "Vyberte banku",
         description: "Pro pokračování prosím vyberte svou banku.",
+      });
+      return;
+    }
+    
+    if (!consentChecked) {
+      toast({
+        variant: "destructive",
+        title: "Potřebujeme váš souhlas",
+        description: "Pro pokračování prosím udělte souhlas s ověřením identity.",
       });
       return;
     }
@@ -117,6 +128,23 @@ const BankVerification: React.FC = () => {
                 </div>
               </div>
               
+              <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="text-lg font-medium mb-3 text-green-700">Právní odůvodnění</h3>
+                <p className="text-sm text-gray-700 mb-3">
+                  V souladu s nařízením Evropského parlamentu a Rady (EU) 2016/679 (GDPR) a zákonem č. 242/2000 Sb. o elektronickém podpisu a směrnicí 
+                  Evropského parlamentu a Rady (EU) 2015/2366 o platebních službách (PSD2) je nutné ověřit identitu podpisu petice. 
+                </p>
+                <p className="text-sm text-gray-700 mb-3">
+                  Podle § 84-90 zákona č. 128/2000 Sb., o obcích, a § 8 zákona č. 85/1990 Sb., o právu petičním, je nutné zajistit důvěryhodnost 
+                  a pravost podpisů u veřejných petic, zejména pokud se týkají rozvoje obecních infrastruktur financovaných z veřejných zdrojů.
+                </p>
+                <p className="text-sm text-gray-700">
+                  Bankovní identita představuje v České republice důvěryhodný a bezpečný způsob elektronického ověření totožnosti 
+                  v souladu s pravidly platnými pro eIDAS (nařízení EU č. 910/2014) a je oficiálně podporovanou metodou ověření identity 
+                  při komunikaci s veřejnou správou.
+                </p>
+              </div>
+              
               <h2 className="text-xl font-semibold mb-6">Vyberte svou banku</h2>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
@@ -130,16 +158,32 @@ const BankVerification: React.FC = () => {
                     }`}
                     onClick={() => handleBankSelection(bank.id)}
                   >
-                    <div className="text-2xl mb-2">{bank.logo}</div>
+                    <div className="h-12 mb-2 flex items-center justify-center">
+                      {/* Placeholder for bank logo */}
+                    </div>
                     <div className="text-sm font-medium">{bank.name}</div>
                   </div>
                 ))}
               </div>
               
+              <div className="flex items-center space-x-2 mb-6">
+                <Checkbox 
+                  id="consent" 
+                  checked={consentChecked}
+                  onCheckedChange={(checked) => setConsentChecked(checked === true)} 
+                />
+                <label
+                  htmlFor="consent"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Souhlasím s ověřením mé identity pro účely podpisu petice v souladu s GDPR a zákony ČR o elektronické identifikaci
+                </label>
+              </div>
+              
               <Button 
                 onClick={handleVerification} 
                 className="green-button" 
-                disabled={isVerifying || !selectedBank}
+                disabled={isVerifying || !selectedBank || !consentChecked}
               >
                 {isVerifying ? 'Probíhá ověřování...' : 'Ověřit totožnost'}
               </Button>
