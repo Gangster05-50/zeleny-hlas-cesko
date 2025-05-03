@@ -6,8 +6,6 @@ import Footer from '../components/Footer';
 import ProgressBar from '../components/ProgressBar';
 import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
 // List of Czech banks
 const czechBanks = [
@@ -32,9 +30,7 @@ const czechBanks = [
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
   const { petitionData, completeBankVerification, createBankLink } = usePetition();
-  const [selectedBank, setSelectedBank] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [consentChecked, setConsentChecked] = useState(false);
   
   // Check if user has filled the petition form
   React.useEffect(() => {
@@ -48,37 +44,17 @@ const BankVerification: React.FC = () => {
     }
   }, [petitionData, navigate]);
   
-  const handleBankSelection = (bankId: string) => {
-    setSelectedBank(bankId);
-  };
-  
-  const handleVerification = async () => {
-    if (!selectedBank) {
-      toast({
-        variant: "destructive",
-        title: "Vyberte banku",
-        description: "Pro pokračování prosím vyberte svou banku.",
-      });
-      return;
-    }
-    
-    if (!consentChecked) {
-      toast({
-        variant: "destructive",
-        title: "Potřebujeme váš souhlas",
-        description: "Pro pokračování prosím udělte souhlas s ověřením identity.",
-      });
-      return;
-    }
+  const handleBankSelection = async (bankId: string) => {
+    if (isVerifying) return;
     
     setIsVerifying(true);
     
     try {
       // Find the selected bank name
-      const selectedBankName = czechBanks.find(bank => bank.id === selectedBank)?.name || selectedBank;
+      const selectedBankName = czechBanks.find(bank => bank.id === bankId)?.name || bankId;
       
       // Create bank link
-      const bankLink = await createBankLink(selectedBank);
+      const bankLink = await createBankLink(bankId);
       console.log('Generated bank link:', bankLink);
       
       // If link generation is successful, complete verification
@@ -147,6 +123,9 @@ const BankVerification: React.FC = () => {
                   v souladu s pravidly platnými pro eIDAS (nařízení EU č. 910/2014) a je oficiálně podporovanou metodou ověření identity 
                   při komunikaci s veřejnou správou.
                 </p>
+                <p className="text-sm text-gray-700 mt-3 font-medium">
+                  Kliknutím na banku níže souhlasíte s ověřením Vaší identity pro účely podpisu petice v souladu s GDPR a zákony ČR o elektronické identifikaci.
+                </p>
               </div>
               
               <h2 className="text-xl font-semibold mb-6">Vyberte svou banku</h2>
@@ -156,9 +135,7 @@ const BankVerification: React.FC = () => {
                   <div 
                     key={bank.id}
                     className={`border rounded-lg p-4 text-center cursor-pointer transition-all ${
-                      selectedBank === bank.id 
-                        ? 'border-green-500 bg-green-50' 
-                        : 'border-gray-200 hover:border-green-300 hover:bg-green-50/50'
+                      isVerifying ? 'opacity-50 pointer-events-none' : 'border-gray-200 hover:border-green-300 hover:bg-green-50/50'
                     }`}
                     onClick={() => handleBankSelection(bank.id)}
                   >
@@ -170,34 +147,19 @@ const BankVerification: React.FC = () => {
                 ))}
               </div>
               
-              <div className="flex items-center space-x-2 mb-6">
-                <Checkbox 
-                  id="consent" 
-                  checked={consentChecked}
-                  onCheckedChange={(checked) => setConsentChecked(checked === true)} 
-                />
-                <label
-                  htmlFor="consent"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Souhlasím s ověřením mé identity pro účely podpisu petice v souladu s GDPR a zákony ČR o elektronické identifikaci
-                </label>
-              </div>
-              
-              <Button 
-                onClick={handleVerification} 
-                className="green-button" 
-                disabled={isVerifying || !selectedBank || !consentChecked}
-              >
-                {isVerifying ? 'Probíhá ověřování...' : 'Ověřit totožnost'}
-              </Button>
+              {isVerifying && (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+                  <span className="ml-2">Probíhá ověřování...</span>
+                </div>
+              )}
             </div>
             
             <div className="mt-6 green-card p-6">
               <h3 className="text-lg font-medium mb-3 text-green-700">Jak bankovní ověření funguje?</h3>
               <ol className="list-decimal list-inside text-gray-600 space-y-3 ml-2">
                 <li>Vyberete svou banku ze seznamu</li>
-                <li>Po kliknutí na tlačítko "Ověřit totožnost" budete přesměrováni na zabezpečený systém vaší banky</li>
+                <li>Po kliknutí na banku budete přesměrováni na zabezpečený systém vaší banky</li>
                 <li>Přihlásíte se svými přihlašovacími údaji do internetového bankovnictví</li>
                 <li>Potvrdíte svou identitu (žádné platby se neprovádí)</li>
                 <li>Budete automaticky přesměrováni zpět, kde dokončíte podpis petice</li>
