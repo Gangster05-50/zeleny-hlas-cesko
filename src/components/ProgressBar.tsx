@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { usePetition } from '../context/PetitionContext';
+import { Progress } from "@/components/ui/progress";
 
 const ProgressBar: React.FC = () => {
   const { submissionProgress, signatureCount, totalSignatures } = usePetition();
@@ -9,11 +10,8 @@ const ProgressBar: React.FC = () => {
     <div className="green-card p-6 sticky top-6">
       <h3 className="text-xl font-semibold mb-4 text-green-700">Stav Petice</h3>
       
-      <div className="progress-bar-container mb-3">
-        <div 
-          className="progress-bar" 
-          style={{ width: `${submissionProgress}%` }}
-        ></div>
+      <div className="mb-3">
+        <Progress value={submissionProgress} className="h-2" />
       </div>
       
       <div className="flex justify-between text-sm mb-6">

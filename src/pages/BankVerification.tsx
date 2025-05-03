@@ -31,7 +31,7 @@ const czechBanks = [
 
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
-  const { petitionData, completeBankVerification } = usePetition();
+  const { petitionData, completeBankVerification, createBankLink } = usePetition();
   const [selectedBank, setSelectedBank] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
@@ -77,7 +77,11 @@ const BankVerification: React.FC = () => {
       // Find the selected bank name
       const selectedBankName = czechBanks.find(bank => bank.id === selectedBank)?.name || selectedBank;
       
-      // Simulate verification process
+      // Create bank link
+      const bankLink = await createBankLink(selectedBank);
+      console.log('Generated bank link:', bankLink);
+      
+      // If link generation is successful, complete verification
       const success = await completeBankVerification(selectedBankName);
       
       if (success) {
