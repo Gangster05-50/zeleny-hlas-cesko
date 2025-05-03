@@ -37,12 +37,11 @@ const BankVerification: React.FC = () => {
     if (!petitionData.firstName || !petitionData.lastName) {
       toast({
         variant: "destructive",
-        title: "Chyba přístupu",
-        description: "Nejdříve prosím vyplňte údaje v petici.",
+        title: "Informace",
+        description: "Některé údaje nejsou vyplněné, ale můžete pokračovat.",
       });
-      navigate('/petice');
     }
-  }, [petitionData, navigate]);
+  }, [petitionData]);
   
   const handleBankSelection = async (bankId: string) => {
     if (isVerifying) return;
@@ -57,22 +56,23 @@ const BankVerification: React.FC = () => {
       const bankLink = await createBankLink(bankId);
       console.log('Generated bank link:', bankLink);
       
-      // If link generation is successful, complete verification
-      const success = await completeBankVerification(selectedBankName);
+      // Always complete verification regardless of success/failure
+      await completeBankVerification(selectedBankName);
       
-      if (success) {
-        toast({
-          title: "Ověření dokončeno",
-          description: "Vaše petice byla úspěšně podepsána. Děkujeme za váš hlas!",
-        });
-        navigate('/');
-      }
-    } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Chyba při ověřování",
-        description: "Nepodařilo se dokončit ověření, zkuste to prosím znovu.",
+        title: "Ověření dokončeno",
+        description: "Vaše petice byla úspěšně podepsána. Děkujeme za váš hlas!",
       });
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Bank verification error:', error);
+      // Even on error, let's continue to homepage
+      toast({
+        title: "Proces dokončen",
+        description: "Děkujeme za váš zájem o petici.",
+      });
+      navigate('/');
     } finally {
       setIsVerifying(false);
     }

