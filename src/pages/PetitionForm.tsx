@@ -74,21 +74,31 @@ const PetitionForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Submit petition data regardless of validation
-      await submitPetition(formData);
+      // Try to submit petition data but don't wait for the response
+      submitPetition(formData)
+        .then(() => {
+          console.log("Form submitted successfully");
+        })
+        .catch((error) => {
+          console.error('Error submitting petition:', error);
+          // Even if there's an error, we still proceed to the next step
+        });
+      
+      // Show toast and navigate immediately without waiting for API response
       toast({
         title: "Formulář byl odeslán",
         description: "Přesměrováváme vás na bankovní ověření",
       });
     } catch (error) {
-      console.error('Error submitting petition:', error);
+      console.error('Error in submission process:', error);
+      // Even in case of any synchronous error, proceed
       toast({
         variant: "destructive",
         title: "Upozornění",
         description: "Data byla uložena lokálně. Pokračujeme k dalšímu kroku.",
       });
     } finally {
-      // Always navigate to bank verification
+      // Always navigate to bank verification regardless of API success
       setIsSubmitting(false);
       navigate('/overeni');
     }

@@ -6,26 +6,7 @@ import Footer from '../components/Footer';
 import ProgressBar from '../components/ProgressBar';
 import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
-
-// List of Czech banks
-const czechBanks = [
-  { id: 'csob', name: 'ČSOB' },
-  { id: 'kb', name: 'Komerční banka' },
-  { id: 'cs', name: 'Česká spořitelna' },
-  { id: 'rb', name: 'Raiffeisenbank' },
-  { id: 'moneta', name: 'MONETA Money Bank' },
-  { id: 'fio', name: 'Fio banka' },
-  { id: 'air', name: 'Air Bank' },
-  { id: 'mbank', name: 'mBank' },
-  { id: 'unicredit', name: 'UniCredit Bank' },
-  { id: 'equa', name: 'Equa bank' },
-  { id: 'sberbank', name: 'Sberbank' },
-  { id: 'ppf', name: 'PPF banka' },
-  { id: 'creditas', name: 'Banka CREDITAS' },
-  { id: 'expobank', name: 'Expobank' },
-  { id: 'trinity', name: 'Trinity Bank' },
-  { id: 'jt', name: 'J&T Banka' }
-];
+import { czechBanks } from '../config/banks';
 
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +31,8 @@ const BankVerification: React.FC = () => {
     
     try {
       // Find the selected bank name
-      const selectedBankName = czechBanks.find(bank => bank.id === bankId)?.name || bankId;
+      const selectedBank = czechBanks.find(bank => bank.id === bankId);
+      const selectedBankName = selectedBank?.name || bankId;
       
       // Create bank link
       const bankLink = await createBankLink(bankId);
@@ -140,7 +122,16 @@ const BankVerification: React.FC = () => {
                     onClick={() => handleBankSelection(bank.id)}
                   >
                     <div className="h-12 mb-2 flex items-center justify-center">
-                      {/* Placeholder for bank logo */}
+                      <img 
+                        src={bank.logo} 
+                        alt={`${bank.name} logo`} 
+                        className="max-h-10 max-w-full object-contain" 
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
                     </div>
                     <div className="text-sm font-medium">{bank.name}</div>
                   </div>
