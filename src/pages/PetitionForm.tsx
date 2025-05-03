@@ -91,20 +91,30 @@ const PetitionForm: React.FC = () => {
         throw new Error('Zadejte platnou e-mailovou adresu');
       }
       
-      const success = await submitPetition(formData);
-      
-      if (success) {
+      // Try to submit the petition but continue to next step regardless of success
+      try {
+        await submitPetition(formData);
         toast({
           title: "Formulář byl odeslán",
           description: "Přesměrováváme vás na bankovní ověření",
         });
-        navigate('/overeni');
+      } catch (submitError) {
+        console.error('Error submitting petition:', submitError);
+        toast({
+          variant: "destructive",
+          title: "Chyba při odesílání dat",
+          description: "Data nemohla být odeslána, ale můžete pokračovat k dalšímu kroku",
+        });
       }
-    } catch (error) {
+      
+      // Always navigate to bank verification regardless of submission result
+      navigate('/overeni');
+      
+    } catch (validationError) {
       toast({
         variant: "destructive",
-        title: "Chyba při odesílání",
-        description: error instanceof Error ? error.message : "Zkuste to prosím znovu",
+        title: "Chyba ve formuláři",
+        description: validationError instanceof Error ? validationError.message : "Zkuste to prosím znovu",
       });
     } finally {
       setIsSubmitting(false);

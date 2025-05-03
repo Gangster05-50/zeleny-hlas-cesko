@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 
@@ -67,7 +66,10 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return true;
     } catch (error) {
       console.error('Error submitting petition:', error);
-      return false;
+      // Still update local state even if API call fails
+      setPetitionData(data);
+      // Re-throw the error to let the component handle it
+      throw error;
     }
   };
 
