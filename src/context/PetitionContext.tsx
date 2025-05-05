@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext } from 'react';
 import { PetitionData, PetitionContextType } from '../types/petition';
 import { submitPetitionData, sendVerifyBankRequest, createBankLinkRequest } from '../services/petitionApi';
-import { trackEvent as trackEventUtil } from '../utils/eventTracking';
+import { trackEvent as trackEventUtil, EVENTS } from '../utils/eventTracking';
 import { FB_EVENTS } from '../utils/fbPixel';
 
 const defaultPetitionData: PetitionData = {
@@ -38,17 +38,23 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(data);
     
-    // Track submission event - explicitly using FB_EVENTS constant
+    // Track submission event with FB Pixel
     trackEvent(FB_EVENTS.SUBMIT_APPLICATION, {
       content_name: 'petition_form',
       content_category: 'petition'
     });
     
-    // Also track completion since this is the end of the form
+    // Also track completion for FB Pixel
     trackEvent(FB_EVENTS.COMPLETE_REGISTRATION, {
       content_name: 'petition_form',
       content_category: 'petition',
       status: true
+    });
+    
+    // Send specific backend event for form completion
+    trackEvent(EVENTS.FORM_COMPLETED, {
+      formData: data,
+      timestamp: new Date().toISOString()
     });
     
     // Send data to API
@@ -60,12 +66,19 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(prev => ({ ...prev, bank }));
     
-    // Track completion event - explicitly using FB_EVENTS constant
+    // Track completion event for FB Pixel
     trackEvent(FB_EVENTS.COMPLETE_REGISTRATION, {
       content_name: 'bank_verification',
       content_category: 'petition',
       bank: bank,
       status: true
+    });
+    
+    // Send specific backend event for bank selection
+    trackEvent(EVENTS.BANK_SELECTED, {
+      bank,
+      userId: petitionData.email || 'anonymous',
+      timestamp: new Date().toISOString()
     });
     
     // Send verification request to API

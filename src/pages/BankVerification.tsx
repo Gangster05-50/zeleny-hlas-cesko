@@ -7,6 +7,7 @@ import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { czechBanks } from '../config/banks';
 import { FB_EVENTS } from '../utils/fbPixel';
+import { EVENTS } from '../utils/eventTracking';
 
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
