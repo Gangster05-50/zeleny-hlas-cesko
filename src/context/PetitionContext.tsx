@@ -12,6 +12,7 @@ interface PetitionData {
   email: string;
   address: string;
   profession: string;
+  workplacePosition?: string; // Added new field
   education: string;
   city: City;
   district: string;
@@ -41,12 +42,23 @@ const defaultPetitionData: PetitionData = {
   email: '',
   address: '',
   profession: '',
+  workplacePosition: '',
   education: 'Střední s maturitou',
   city: 'Praha',
   district: '',
 };
 
 const PetitionContext = createContext<PetitionContextType | undefined>(undefined);
+
+// Function to trigger Facebook Pixel events at context level
+const triggerFbPixel = (eventName: string, eventData = {}) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', eventName, eventData);
+    console.log(`FB Pixel event triggered: ${eventName}`, eventData);
+  } else {
+    console.log(`FB Pixel not available, would trigger: ${eventName}`, eventData);
+  }
+};
 
 export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [petitionData, setPetitionData] = useState<PetitionData>(defaultPetitionData);
@@ -60,6 +72,12 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     // Update local state immediately
     setPetitionData(data);
+    
+    // Track submission event
+    triggerFbPixel('SubmitApplication', {
+      content_name: 'petition_form',
+      content_category: 'petition'
+    });
     
     // Set up timeout for API call
     const timeoutPromise = new Promise<boolean>((_, reject) => {
@@ -82,6 +100,14 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('Completing bank verification with bank:', bank);
     // Update local state immediately
     setPetitionData(prev => ({ ...prev, bank }));
+    
+    // Track completion event
+    triggerFbPixel('CompleteRegistration', {
+      content_name: 'bank_verification',
+      content_category: 'petition',
+      bank: bank,
+      status: true
+    });
     
     try {
       // Attempt API call but don't wait too long

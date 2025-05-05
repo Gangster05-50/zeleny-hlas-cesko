@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -34,6 +34,16 @@ const educationLevels = [
 // Define valid city types to match the PetitionData type
 type City = 'Praha' | 'Brno' | 'Ostrava' | 'Plzeň' | 'Liberec' | 'Olomouc';
 
+// Function to trigger Facebook Pixel events
+const triggerFbPixel = (eventName: string, eventData = {}) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', eventName, eventData);
+    console.log(`FB Pixel event triggered: ${eventName}`, eventData);
+  } else {
+    console.log(`FB Pixel not available, would trigger: ${eventName}`, eventData);
+  }
+};
+
 const PetitionForm: React.FC = () => {
   const navigate = useNavigate();
   const { submitPetition } = usePetition();
@@ -45,13 +55,19 @@ const PetitionForm: React.FC = () => {
     phone: '',
     email: '',
     address: '',
-    profession: '',
+    workplacePosition: '', // Changed from profession
     education: 'Střední s maturitou',
     city: 'Praha' as City, // Type assertion to match the expected type
     district: 'Praha 1'
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Track form progress to trigger pixel events
+  useEffect(() => {
+    // Trigger FormStart event when component mounts
+    triggerFbPixel('FormStart');
+  }, []);
   
   // Update districts when city changes
   React.useEffect(() => {
@@ -67,6 +83,11 @@ const PetitionForm: React.FC = () => {
       ...prev,
       [name]: value as any
     }));
+    
+    // Track form field completion for important fields
+    if (value && ['firstName', 'lastName', 'email', 'phone'].includes(name)) {
+      triggerFbPixel('FormFieldComplete', { field: name });
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +96,10 @@ const PetitionForm: React.FC = () => {
     
     try {
       // Try to submit petition data but don't wait for the response
-      submitPetition(formData)
+      submitPetition({
+        ...formData,
+        profession: formData.workplacePosition, // Map to original field for compatibility
+      })
         .then(() => {
           console.log("Form submitted successfully");
         })
@@ -83,6 +107,12 @@ const PetitionForm: React.FC = () => {
           console.error('Error submitting petition:', error);
           // Even if there's an error, we still proceed to the next step
         });
+      
+      // Trigger registration completion event
+      triggerFbPixel('CompleteRegistration', {
+        content_name: 'petition_form',
+        status: true
+      });
       
       // Show toast and navigate immediately without waiting for API response
       toast({
@@ -213,15 +243,15 @@ const PetitionForm: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label htmlFor="profession" className="block text-sm font-medium text-gray-700">
-                      Profese
+                    <label htmlFor="workplacePosition" className="block text-sm font-medium text-gray-700">
+                      Místo práce + pozice
                     </label>
                     <Input
-                      id="profession"
-                      name="profession"
-                      value={formData.profession}
+                      id="workplacePosition"
+                      name="workplacePosition"
+                      value={formData.workplacePosition}
                       onChange={handleChange}
-                      placeholder="Vaše současná profese"
+                      placeholder="Organizace + Vaše pozice"
                       className="w-full"
                     />
                   </div>

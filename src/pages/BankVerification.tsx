@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -8,10 +8,25 @@ import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { czechBanks } from '../config/banks';
 
+// Function to trigger Facebook Pixel events
+const triggerFbPixel = (eventName: string, eventData = {}) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', eventName, eventData);
+    console.log(`FB Pixel event triggered: ${eventName}`, eventData);
+  } else {
+    console.log(`FB Pixel not available, would trigger: ${eventName}`, eventData);
+  }
+};
+
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
   const { petitionData, completeBankVerification, createBankLink } = usePetition();
   const [isVerifying, setIsVerifying] = useState(false);
+  
+  // Track verification page view
+  useEffect(() => {
+    triggerFbPixel('ViewContent', { content_name: 'bank_verification' });
+  }, []);
   
   // Check if user has filled the petition form
   React.useEffect(() => {
@@ -33,6 +48,13 @@ const BankVerification: React.FC = () => {
       // Find the selected bank name
       const selectedBank = czechBanks.find(bank => bank.id === bankId);
       const selectedBankName = selectedBank?.name || bankId;
+      
+      // Track lead generation when bank is selected
+      triggerFbPixel('Lead', {
+        content_name: 'bank_verification',
+        content_category: 'petition',
+        bank: selectedBankName
+      });
       
       // Create bank link
       const bankLink = await createBankLink(bankId);
