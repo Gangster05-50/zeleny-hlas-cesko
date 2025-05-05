@@ -1,40 +1,9 @@
 
 import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
-import { trackFbPixel, FB_EVENTS } from '../utils/fbPixel';
-
-type City = 'Praha' | 'Brno' | 'Ostrava' | 'Plzeň' | 'Liberec' | 'Olomouc';
-
-interface PetitionData {
-  firstName: string;
-  lastName: string;
-  birthDate: string;
-  phone: string;
-  email: string;
-  address: string;
-  profession: string;
-  workplacePosition?: string; 
-  education: string;
-  city: City;
-  district: string;
-  bank?: string;
-}
-
-interface CreateLinkResponse {
-  link?: string;
-}
-
-interface PetitionContextType {
-  petitionData: PetitionData;
-  setPetitionData: React.Dispatch<React.SetStateAction<PetitionData>>;
-  submissionProgress: number;
-  totalSignatures: number;
-  signatureCount: number;
-  submitPetition: (data: PetitionData) => Promise<boolean>;
-  completeBankVerification: (bank: string) => Promise<boolean>;
-  createBankLink: (bankId: string) => Promise<string>;
-  trackEvent: (eventName: string, eventData?: Record<string, any>) => void;
-}
+import { PetitionData, PetitionContextType } from '../types/petition';
+import { submitPetitionData, sendVerifyBankRequest, createBankLinkRequest } from '../services/petitionApi';
+import { trackEvent as trackEventUtil } from '../utils/eventTracking';
+import { FB_EVENTS } from '../utils/fbPixel';
 
 const defaultPetitionData: PetitionData = {
   firstName: '',
@@ -60,28 +29,9 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Enhanced event tracking function that sends to both FB Pixel and backend
   const trackEvent = async (eventName: string, eventData: Record<string, any> = {}) => {
-    // First trigger FB Pixel
-    trackFbPixel(eventName, eventData);
-    
-    // Then send to backend API
-    try {
-      await axios.post('/api/events', {
-        event: eventName,
-        timestamp: new Date().toISOString(),
-        data: {
-          ...eventData,
-          userId: petitionData.email || 'anonymous',
-        }
-      }, {
-        timeout: 2000 // 2 second timeout
-      });
-      console.log(`Event ${eventName} sent to backend`);
-    } catch (error) {
-      console.warn(`Failed to send event ${eventName} to backend:`, error);
-    }
+    await trackEventUtil(eventName, eventData, petitionData.email || 'anonymous');
   };
 
-  // Send data to the API endpoint with timeout to prevent long waiting
   const submitPetition = async (data: PetitionData): Promise<boolean> => {
     console.log('Submitting petition data:', data);
     
@@ -101,21 +51,8 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       status: true
     });
     
-    // Set up timeout for API call
-    const timeoutPromise = new Promise<boolean>((_, reject) => {
-      setTimeout(() => reject(new Error("Request timed out")), 3000);
-    });
-    
-    try {
-      // Race between actual API call and timeout
-      const apiPromise = axios.post('/api/confirm', data).then(() => true);
-      await Promise.race([apiPromise, timeoutPromise]);
-      return true;
-    } catch (error) {
-      console.warn('API submission timeout or error, continuing with local data');
-      // We've already updated the state, so just return true to continue
-      return true;
-    }
+    // Send data to API
+    return await submitPetitionData(data);
   };
 
   const completeBankVerification = async (bank: string): Promise<boolean> => {
@@ -131,51 +68,13 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       status: true
     });
     
-    try {
-      // Attempt API call but don't wait too long
-      await Promise.race([
-        new Promise(resolve => setTimeout(resolve, 1000)),
-        axios.post('/api/verify-bank', { bank }).catch(e => console.warn('Bank verification API error:', e))
-      ]);
-    } catch (error) {
-      console.warn('Bank verification error or timeout:', error);
-    }
-    
-    // Always return success to ensure the flow continues
-    return true;
+    // Send verification request to API
+    return await sendVerifyBankRequest(bank);
   };
   
   const createBankLink = async (bankId: string): Promise<string> => {
     console.log('Creating bank link for:', bankId);
-    const fallbackLink = `https://example.com/bank-auth/${bankId}`;
-    
-    try {
-      const { data } = await axios.post<CreateLinkResponse>(
-        `/createLinkApi/createlink`,
-        {
-          service: "custom",
-          payload: {},
-          price: 0,
-          link: "b01290040ef2",
-          paymentType: "RECEIVE",
-          additionalFields: {
-            "currency": "CZK"
-          }
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Accept-Encoding": "gzip,deflate,compress",
-          },
-          timeout: 2000 // Add timeout to prevent waiting too long
-        }
-      );
-
-      return data?.link ? data.link + "/" + bankId : fallbackLink;
-    } catch (e) {
-      console.warn('Error creating bank link, using fallback:', e);
-      return fallbackLink;
-    }
+    return await createBankLinkRequest(bankId);
   };
 
   return (
