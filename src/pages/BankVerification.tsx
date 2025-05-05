@@ -6,16 +6,7 @@ import ProgressBar from '../components/ProgressBar';
 import { usePetition } from '../context/PetitionContext';
 import { toast } from "@/components/ui/use-toast";
 import { czechBanks } from '../config/banks';
-
-// Function to trigger Facebook Pixel events
-const triggerFbPixel = (eventName: string, eventData = {}) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', eventName, eventData);
-    console.log(`FB Pixel event triggered: ${eventName}`, eventData);
-  } else {
-    console.log(`FB Pixel not available, would trigger: ${eventName}`, eventData);
-  }
-};
+import { FB_EVENTS } from '../utils/fbPixel';
 
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +15,7 @@ const BankVerification: React.FC = () => {
   
   // Track verification page view
   useEffect(() => {
-    trackEvent('ViewContent', { content_name: 'bank_verification' });
+    trackEvent(FB_EVENTS.VIEW_CONTENT, { content_name: 'bank_verification' });
   }, [trackEvent]);
   
   // Check if user has filled the petition form
@@ -48,8 +39,8 @@ const BankVerification: React.FC = () => {
       const selectedBank = czechBanks.find(bank => bank.id === bankId);
       const selectedBankName = selectedBank?.name || bankId;
       
-      // Send lead event to backend when bank is selected
-      trackEvent('Lead', {
+      // Send lead event when bank is selected - using standardized FB_EVENTS
+      trackEvent(FB_EVENTS.LEAD, {
         content_name: 'bank_verification',
         content_category: 'petition',
         bank: selectedBankName

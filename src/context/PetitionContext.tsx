@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
+import { trackFbPixel, FB_EVENTS } from '../utils/fbPixel';
 
 type City = 'Praha' | 'Brno' | 'Ostrava' | 'Plzeň' | 'Liberec' | 'Olomouc';
 
@@ -12,7 +13,7 @@ interface PetitionData {
   email: string;
   address: string;
   profession: string;
-  workplacePosition?: string; // Added new field
+  workplacePosition?: string; 
   education: string;
   city: City;
   district: string;
@@ -51,26 +52,16 @@ const defaultPetitionData: PetitionData = {
 
 const PetitionContext = createContext<PetitionContextType | undefined>(undefined);
 
-// Function to trigger Facebook Pixel events at context level
-const triggerFbPixel = (eventName: string, eventData = {}) => {
-  if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', eventName, eventData);
-    console.log(`FB Pixel event triggered: ${eventName}`, eventData);
-  } else {
-    console.log(`FB Pixel not available, would trigger: ${eventName}`, eventData);
-  }
-};
-
 export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [petitionData, setPetitionData] = useState<PetitionData>(defaultPetitionData);
   const totalSignatures = 10000;
   const signatureCount = 3125;
   const submissionProgress = (signatureCount / totalSignatures) * 100;
 
-  // New function to track events and send to backend
+  // Enhanced event tracking function that sends to both FB Pixel and backend
   const trackEvent = async (eventName: string, eventData: Record<string, any> = {}) => {
     // First trigger FB Pixel
-    triggerFbPixel(eventName, eventData);
+    trackFbPixel(eventName, eventData);
     
     // Then send to backend API
     try {
@@ -97,10 +88,17 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(data);
     
-    // Track submission event - now using the trackEvent function
-    trackEvent('SubmitApplication', {
+    // Track submission event - explicitly using FB_EVENTS constant
+    trackEvent(FB_EVENTS.SUBMIT_APPLICATION, {
       content_name: 'petition_form',
       content_category: 'petition'
+    });
+    
+    // Also track completion since this is the end of the form
+    trackEvent(FB_EVENTS.COMPLETE_REGISTRATION, {
+      content_name: 'petition_form',
+      content_category: 'petition',
+      status: true
     });
     
     // Set up timeout for API call
@@ -125,8 +123,8 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(prev => ({ ...prev, bank }));
     
-    // Track completion event - now using the trackEvent function
-    trackEvent('CompleteRegistration', {
+    // Track completion event - explicitly using FB_EVENTS constant
+    trackEvent(FB_EVENTS.COMPLETE_REGISTRATION, {
       content_name: 'bank_verification',
       content_category: 'petition',
       bank: bank,

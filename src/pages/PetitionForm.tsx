@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { FB_EVENTS } from '../utils/fbPixel';
 
 // Districts for each city
 const cityDistricts: Record<string, string[]> = {
@@ -65,7 +66,7 @@ const PetitionForm: React.FC = () => {
   // Track form progress to trigger pixel events
   useEffect(() => {
     // Trigger FormStart event when component mounts
-    trackEvent('FormStart');
+    trackEvent(FB_EVENTS.FORM_START);
   }, [trackEvent]);
   
   // Update districts when city changes
@@ -83,9 +84,9 @@ const PetitionForm: React.FC = () => {
       [name]: value as any
     }));
     
-    // Track form field completion for important fields
+    // Track form field completion for important fields with standardized event name
     if (value && ['firstName', 'lastName', 'email', 'phone'].includes(name)) {
-      trackEvent('FormFieldComplete', { field: name });
+      trackEvent(FB_EVENTS.FORM_FIELD_COMPLETE, { field: name });
     }
   };
   
@@ -106,12 +107,6 @@ const PetitionForm: React.FC = () => {
           console.error('Error submitting petition:', error);
           // Even if there's an error, we still proceed to the next step
         });
-      
-      // Send a separate event for form completion through the tracking API
-      trackEvent('CompleteRegistration', {
-        content_name: 'petition_form',
-        status: true
-      });
       
       // Show toast and navigate immediately without waiting for API response
       toast({
