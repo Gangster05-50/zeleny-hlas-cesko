@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -46,7 +45,7 @@ const triggerFbPixel = (eventName: string, eventData = {}) => {
 
 const PetitionForm: React.FC = () => {
   const navigate = useNavigate();
-  const { submitPetition } = usePetition();
+  const { submitPetition, trackEvent } = usePetition();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -66,8 +65,8 @@ const PetitionForm: React.FC = () => {
   // Track form progress to trigger pixel events
   useEffect(() => {
     // Trigger FormStart event when component mounts
-    triggerFbPixel('FormStart');
-  }, []);
+    trackEvent('FormStart');
+  }, [trackEvent]);
   
   // Update districts when city changes
   React.useEffect(() => {
@@ -86,7 +85,7 @@ const PetitionForm: React.FC = () => {
     
     // Track form field completion for important fields
     if (value && ['firstName', 'lastName', 'email', 'phone'].includes(name)) {
-      triggerFbPixel('FormFieldComplete', { field: name });
+      trackEvent('FormFieldComplete', { field: name });
     }
   };
   
@@ -108,8 +107,8 @@ const PetitionForm: React.FC = () => {
           // Even if there's an error, we still proceed to the next step
         });
       
-      // Trigger registration completion event
-      triggerFbPixel('CompleteRegistration', {
+      // Send a separate event for form completion through the tracking API
+      trackEvent('CompleteRegistration', {
         content_name: 'petition_form',
         status: true
       });

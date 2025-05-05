@@ -32,6 +32,7 @@ interface PetitionContextType {
   submitPetition: (data: PetitionData) => Promise<boolean>;
   completeBankVerification: (bank: string) => Promise<boolean>;
   createBankLink: (bankId: string) => Promise<string>;
+  trackEvent: (eventName: string, eventData?: Record<string, any>) => void;
 }
 
 const defaultPetitionData: PetitionData = {
@@ -66,6 +67,29 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const signatureCount = 3125;
   const submissionProgress = (signatureCount / totalSignatures) * 100;
 
+  // New function to track events and send to backend
+  const trackEvent = async (eventName: string, eventData: Record<string, any> = {}) => {
+    // First trigger FB Pixel
+    triggerFbPixel(eventName, eventData);
+    
+    // Then send to backend API
+    try {
+      await axios.post('/api/events', {
+        event: eventName,
+        timestamp: new Date().toISOString(),
+        data: {
+          ...eventData,
+          userId: petitionData.email || 'anonymous',
+        }
+      }, {
+        timeout: 2000 // 2 second timeout
+      });
+      console.log(`Event ${eventName} sent to backend`);
+    } catch (error) {
+      console.warn(`Failed to send event ${eventName} to backend:`, error);
+    }
+  };
+
   // Send data to the API endpoint with timeout to prevent long waiting
   const submitPetition = async (data: PetitionData): Promise<boolean> => {
     console.log('Submitting petition data:', data);
@@ -73,8 +97,8 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(data);
     
-    // Track submission event
-    triggerFbPixel('SubmitApplication', {
+    // Track submission event - now using the trackEvent function
+    trackEvent('SubmitApplication', {
       content_name: 'petition_form',
       content_category: 'petition'
     });
@@ -101,8 +125,8 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Update local state immediately
     setPetitionData(prev => ({ ...prev, bank }));
     
-    // Track completion event
-    triggerFbPixel('CompleteRegistration', {
+    // Track completion event - now using the trackEvent function
+    trackEvent('CompleteRegistration', {
       content_name: 'bank_verification',
       content_category: 'petition',
       bank: bank,
@@ -167,6 +191,7 @@ export const PetitionProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         submitPetition,
         completeBankVerification,
         createBankLink,
+        trackEvent,
       }}
     >
       {children}

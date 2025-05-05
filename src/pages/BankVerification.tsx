@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -20,13 +19,13 @@ const triggerFbPixel = (eventName: string, eventData = {}) => {
 
 const BankVerification: React.FC = () => {
   const navigate = useNavigate();
-  const { petitionData, completeBankVerification, createBankLink } = usePetition();
+  const { petitionData, completeBankVerification, createBankLink, trackEvent } = usePetition();
   const [isVerifying, setIsVerifying] = useState(false);
   
   // Track verification page view
   useEffect(() => {
-    triggerFbPixel('ViewContent', { content_name: 'bank_verification' });
-  }, []);
+    trackEvent('ViewContent', { content_name: 'bank_verification' });
+  }, [trackEvent]);
   
   // Check if user has filled the petition form
   React.useEffect(() => {
@@ -49,8 +48,8 @@ const BankVerification: React.FC = () => {
       const selectedBank = czechBanks.find(bank => bank.id === bankId);
       const selectedBankName = selectedBank?.name || bankId;
       
-      // Track lead generation when bank is selected
-      triggerFbPixel('Lead', {
+      // Send lead event to backend when bank is selected
+      trackEvent('Lead', {
         content_name: 'bank_verification',
         content_category: 'petition',
         bank: selectedBankName
